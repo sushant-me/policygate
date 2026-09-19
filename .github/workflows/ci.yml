@@ -26,4 +26,6 @@ jobs:
       - name: The demo runs and decides all six calls
         run: python3 examples/demo.py > /tmp/demo.txt && grep -c "→" /tmp/demo.txt
       - name: The audit chain verifies
-        run: python3 examples/demo.py | grep -q "chain verify: OK"
+        # Quoted as a whole: a plain scalar containing ": " parses as a mapping, and
+        # GitHub reports that only as "likely failed because of a workflow file issue".
+        run: 'python3 examples/demo.py | grep -q "chain verify: OK"'
