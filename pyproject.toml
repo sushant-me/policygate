@@ -1,0 +1,28 @@
+[project]
+name = "policygate"
+version = "0.1.0"
+description = "A fail-closed policy gate for autonomous agent tool calls, built so a language model can never authorise an action"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["ai-security", "agents", "llm", "policy", "guardrails", "tool-calling"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+  "Intended Audience :: Developers",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["policygate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

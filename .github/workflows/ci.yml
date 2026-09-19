@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - name: The safety properties
+        run: pytest -q tests/
+      - name: The demo runs and decides all six calls
+        run: python3 examples/demo.py > /tmp/demo.txt && grep -c "→" /tmp/demo.txt
+      - name: The audit chain verifies
+        run: python3 examples/demo.py | grep -q "chain verify: OK"

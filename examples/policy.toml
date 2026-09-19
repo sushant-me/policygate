@@ -1,0 +1,47 @@
+# A sample policy for a support agent that can read orders and send email.
+#
+# Rules are matched by severity, not by position: every `deny` rule is considered
+# before any `escalate` rule, and those before any `allow`. So the broad allow at the
+# bottom cannot shadow the narrow deny at the top, whatever order they are written in.
+
+[gate]
+# What happens to a call no rule matches. `escalate` is the default; `allow` is
+# refused at load time unless you also set allow_unmatched_acknowledged_unsafe.
+default = "escalate"
+# Whether a model evaluator may be consulted when no rule matches. It can only
+# tighten a decision — see the README for the measurement behind that.
+consult_model = true
+
+
+[[rules]]
+id = "deny-privilege-escalation"
+effect = "deny"
+tool = "run_shell"
+arg_matches = { command = "(?i)(sudoers|/etc/shadow|chmod\\s+777\\s+/|NOPASSWD)" }
+rationale = "Writing to sudoers or shadow, or world-writable root paths, grants persistent privilege. No agent should do this unattended."
+
+[[rules]]
+id = "deny-credential-egress"
+effect = "deny"
+tool = ["http_post", "send_email", "upload_file"]
+arg_matches = { url = "(?i)(pastebin|transfer\\.sh|webhook\\.site|requestbin|ngrok)" }
+rationale = "Exfiltration destinations. Sending data to a public capture service is never a legitimate agent action."
+
+[[rules]]
+id = "deny-escape-report-path"
+effect = "deny"
+tool = "read_report"
+arg_matches = { name = "\\.\\." }
+rationale = "A report name containing '..' escapes the reports directory; this is the traversal class, refused rather than sanitised."
+
+[[rules]]
+id = "escalate-irreversible"
+effect = "escalate"
+tool = ["delete_*", "drop_*", "send_email", "issue_refund"]
+rationale = "Irreversible or externally visible actions need a human decision, even when they look routine."
+
+[[rules]]
+id = "allow-read-only"
+effect = "allow"
+tool = ["lookup_order", "summarise", "fetch_docs", "search_knowledge_base"]
+rationale = "Read-only lookups that cannot change state or move data off the machine."
