@@ -154,6 +154,26 @@ class Gate:
 
     # -- convenience -------------------------------------------------------
 
+    def escalate(self, call: ToolCall, reason: str, decided_by: str = "unparseable") -> Decision:
+        """Escalate without consulting the policy, and record it.
+
+        For the case where the gate cannot evaluate a call at all — arguments that will
+        not parse, a shape it does not recognise. **This must not fall through to rule
+        matching**: a rule that matches on tool name alone would happily allow a call
+        whose arguments the gate never managed to read, which is exactly the input an
+        attacker controls. A call that cannot be read is not a call that can be allowed.
+        """
+        return self._record(
+            Decision(
+                effect=Effect.ESCALATE,
+                reason=reason,
+                rule=None,
+                decided_by=decided_by,
+                call=call,
+            ),
+            started=time.perf_counter(),
+        )
+
     def check(self, tool: str, **args: Any) -> Decision:
         """Evaluate a call written as keyword arguments, for tests and scripts."""
         return self.evaluate(ToolCall(tool=tool, args=args))

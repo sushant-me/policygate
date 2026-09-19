@@ -29,3 +29,7 @@ jobs:
         # Quoted as a whole: a plain scalar containing ": " parses as a mapping, and
         # GitHub reports that only as "likely failed because of a workflow file issue".
         run: 'python3 examples/demo.py | grep -q "chain verify: OK"'
+      - name: The integration demo shows what reached the server
+        run: 'python3 examples/agent_integration.py | tee /tmp/integration.txt | grep -q "4 attempts, 2 reached the server"'
+      - name: An offline evaluator executes nothing
+        run: 'grep -q "offline server executed: \[\]" /tmp/integration.txt'

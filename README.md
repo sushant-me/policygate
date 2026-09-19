@@ -66,6 +66,57 @@ is what a human reads when the gate escalates. Loading is strict in general — 
 unparseable regex, a duplicate id, an unknown effect, or a policy with no rules raises,
 because a gate that starts with half a policy is worse than one that refuses to start.
 
+## Adapters: putting it in front of real agent machinery
+
+```python
+from policygate import Gate, load_policy
+from policygate.adapters import GatedMCPServer, gated_tools, execute_function_call
+```
+
+| adapter | for | the shape it asks for |
+|---|---|---|
+| `GatedMCPServer` | any MCP-style server | `list_tools()` (or `.tools`) and `call_tool(name, arguments)` |
+| `gated_tool` / `gated_tools` | LangChain-style tools | an object with `name` and a callable (`_run`, `run`, `func`, `invoke`, or itself) |
+| `execute_function_call` | provider-shaped tool calls | `{"name": …, "arguments": "…"}` or `{"function": {…}}` or an `input` field |
+
+Each is duck-typed, so gating a call never makes LangChain or an MCP SDK a dependency of
+your agent.
+
+`GatedMCPServer` does two separate jobs, and the first one happens before any call:
+it **refuses a server whose tool names collide with names the agent framework reserves
+for itself** (`set_model_response`, `google_search`, `finish`, the skill and loop tools…).
+That collision is invisible downstream — those primitives live outside the normal tool
+table, so a server tool taking one of their names is never seen by the duplicate-name
+guard and simply wins dispatch. It is the bug class I filed against three of Google's
+agent frameworks, and here it is refused rather than renamed.
+
+```python
+server = GatedMCPServer(mcp_server, gate)           # raises ToolNameCollision if it collides
+try:
+    result = server.call_tool("lookup_order", {"order_id": "A-1"})
+except PolicyBlocked as exc:                        # a rule refused it
+    ...
+except NeedsHumanApproval as exc:                   # uncovered or human-gated: pending, not refused
+    ...
+```
+
+**Every adapter enforces the same thing, and the tests assert it with a call counter
+rather than by checking a return value: a call the gate does not allow never reaches the
+underlying tool.** `examples/agent_integration.py` prints it as evidence — four attempts,
+two reach the server, and an evaluator that is offline executes nothing.
+
+## A hole a test found in the first version of the function-call adapter
+
+When the arguments would not parse, my first implementation passed the parse failure
+through as an ordinary argument and let the policy decide. The sample policy's
+`allow-read-only` rule matches `lookup_order` **on the tool name alone**, so a call whose
+arguments the gate never managed to read came back **ALLOW**.
+
+That is the exact input an attacker controls. The fix is that an unreadable call is
+escalated **without consulting the policy at all** (`Gate.escalate`), so no name-only
+rule can approve something the gate did not read. The regression test asserts
+`decision.rule is None` for that path, and removing the fix fails two tests.
+
 ## Everything is audited, and the audit is tamper-evident
 
 Every decision — and every non-decision event, like a rejected allow or an unreachable
@@ -89,12 +140,15 @@ functions, and each test fails if the property is weakened:
    falls through to the policy default.
 4. Deny beats allow regardless of where either appears in the file.
 5. A malformed policy refuses to load rather than loading partially.
-6. The audit chain detects tampering, and survives a reload from disk.
+6. A call the gate cannot read is escalated without consulting the policy, so no
+   name-only allow rule can approve arguments that were never parsed.
+7. The audit chain detects tampering, and survives a reload from disk.
 
-**Checked by mutation, not by assertion.** I changed the one line that enforces property
-2 — letting a model's `ALLOW` through on an uncovered call — and re-ran the suite:
-**three tests failed**, naming the model-allow path. Restored, all 32 pass. A test suite
-for a security control that cannot fail is documentation, not a control.
+**Checked by mutation, not by assertion.** Weakening two things — letting a model's
+`ALLOW` through on an uncovered call, and letting an unparseable call fall through to
+rule matching — makes **six tests fail**, and each failure names the path it protects.
+Restored, all 58 pass. A test suite for a security control that cannot fail is
+documentation, not a control.
 
 Two of those tests were wrong when I first wrote them, and running them is what showed
 it: one left `tool` off a rule so the rule matched everything and the default was never
@@ -137,9 +191,12 @@ Stated here rather than left for you to discover:
   model cannot allow.
 - **No de-escalation, no learning.** The policy is static and hand-written. Nothing here
   observes outcomes or adjusts rules.
-- **Not yet tested against a live agent framework.** The integration example is a
-  two-line wrap of a tool dispatcher; adapters for MCP servers and LangChain tools are
-  the obvious next step and are not written.
+- **The adapters are tested against stand-ins, not against a live SDK.** `GatedMCPServer`
+  and `gated_tool` are exercised against duck-typed fakes that match the shapes I
+  documented, not against a pinned MCP SDK release or a specific LangChain version. If
+  you wire this into a real framework and it breaks, that is a bug I want: the shape
+  assumption is written down in each adapter's docstring precisely so it can be
+  contradicted.
 
 ## Status
 

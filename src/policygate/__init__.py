@@ -15,6 +15,7 @@ unusable as an authority.
 
 from .audit import AuditLog
 from .decision import Decision, Effect, ToolCall
+from .errors import EvaluatorUnavailable, NeedsHumanApproval, PolicyBlocked, PolicyGateError
 from .evaluators import ModelEvaluator, RuleEvaluator, StaticModel
 from .gate import Gate, PolicyError, load_policy
 
@@ -22,9 +23,13 @@ __all__ = [
     "AuditLog",
     "Decision",
     "Effect",
+    "EvaluatorUnavailable",
     "Gate",
     "ModelEvaluator",
+    "NeedsHumanApproval",
+    "PolicyBlocked",
     "PolicyError",
+    "PolicyGateError",
     "RuleEvaluator",
     "StaticModel",
     "ToolCall",
