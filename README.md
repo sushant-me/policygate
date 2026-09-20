@@ -186,9 +186,10 @@ Stated here rather than left for you to discover:
 - **It does not decide whether a policy is good.** A rule with a wrong regex allows what
   it should refuse. The gate makes the policy's meaning explicit, reviewable and
   auditable; it cannot make it correct.
-- **Model quality is your problem, and it is bounded.** Measured at 66.3% decision
-  accuracy and 90.8% on decisive rules in the configuration above — which is why the
-  model cannot allow.
+- **Model quality is your problem, and it is bounded.** In the paper's best configuration
+  the evaluator reached **66.3%** decision accuracy, and **90.8%** on the Rule A hard-denial
+  scenarios — which is why the model cannot allow. Those are the paper's own labels; the
+  table is in its README, and both numbers move with the model you supply.
 - **No de-escalation, no learning.** The policy is static and hand-written. Nothing here
   observes outcomes or adjusts rules.
 - **The adapters are tested against stand-ins, not against a live SDK.** `GatedMCPServer`
