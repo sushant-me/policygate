@@ -206,3 +206,12 @@ Stated here rather than left for you to discover:
 `v0.1.0`, stdlib only, Python 3.11+, CI on 3.11/3.12/3.13. The design and the numbers it
 rests on are public and re-checked weekly by
 [sushant-me/reputation](https://github.com/sushant-me/reputation).
+
+## Security
+
+This project has a published security advisory:
+**[GHSA-qwvv-fcmm-r3j2](https://github.com/sushant-me/policygate/security/advisories/GHSA-qwvv-fcmm-r3j2)**
+(high) — A glob `deny` rule could be stepped around with a newline in the matched value, so the call fell through to a broader `allow` and proceeded with no human in the loop.
+
+Fixed in v0.1.1. The advisory carries the reproduction and the regression test; the fix
+is checked by the test suite on every push.
