@@ -11,7 +11,10 @@ written so that it fails if the property is weakened. The properties:
    unparseably falls through to the policy default, which refuses.
 4. **Deny beats allow regardless of file order.**
 5. **A bad policy refuses to load** rather than loading partially.
-6. **The audit chain detects tampering.**
+6. **A call the gate cannot read is escalated** without consulting the policy.
+7. **The audit chain detects tampering.**
+8. **A pattern matches the whole value, newlines included.** A deny rule that anything can
+   step around by embedding a newline is not a deny rule.
 """
 
 from __future__ import annotations
@@ -292,3 +295,39 @@ def test_the_readme_states_the_measurement_the_design_rests_on() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     assert "23.5%" in readme, "the design rests on this number; it must be stated"
     assert "cannot authorise" in readme or "cannot authorise an uncovered" in readme
+
+
+def test_a_glob_rule_cannot_be_stepped_around_with_a_newline() -> None:
+    """A deny rule a newline defeats is not a deny rule.
+
+    `.` does not match a newline unless re.DOTALL is set, so `send_*` failed to match the value
+    "send_\nemail" and the call fell through to the broad allow below: an authorization bypass, in
+    a gate whose whole purpose is to refuse what the policy does not cover. The value is
+    attacker-influenced — tool names come from the MCP server being gated.
+    """
+    policy = load_policy({
+        "gate": {"default": "escalate"},
+        "rules": [
+            {"id": "deny-send", "effect": "deny", "tool": "send_*",
+             "rationale": "Sending mail from an unattended agent can exfiltrate data."},
+            {"id": "allow-rest", "effect": "allow", "tool": "*",
+             "rationale": "Everything else this agent may do without a human in the loop."},
+        ],
+    })
+    gate = Gate(policy)
+    assert gate.check("send_email").effect is Effect.DENY
+    assert gate.check("send_\nemail").effect is Effect.DENY
+    assert gate.check("send_\remail").effect is Effect.DENY
+    # The specific pattern must not have become a wildcard in the process.
+    assert gate.check("fetch_email").effect is Effect.ALLOW
+
+
+def test_a_glob_pattern_does_not_match_a_value_it_merely_resembles() -> None:
+    """Matching the whole value, so a pattern cannot be widened into a catch-all."""
+    from policygate.policy import Rule
+
+    assert Rule._glob_match("delete_*", "delete_file") is True
+    assert Rule._glob_match("delete_*", "delete_file\n") is True
+    assert Rule._glob_match("delete_*", "undelete_file") is False
+    assert Rule._glob_match("*_admin", "user_admin") is True
+    assert Rule._glob_match("*_admin", "user_admin_evil") is False

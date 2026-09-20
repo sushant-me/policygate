@@ -1,6 +1,6 @@
 [project]
 name = "policygate"
-version = "0.1.0"
+version = "0.1.1"
 description = "A fail-closed policy gate for autonomous agent tool calls, built so a language model can never authorise an action"
 readme = "README.md"
 requires-python = ">=3.11"

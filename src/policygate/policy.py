@@ -54,8 +54,19 @@ class Rule:
             return True
         if "*" not in pattern:
             return pattern == value
-        regex = "^" + re.escape(pattern).replace(r"\*", ".*") + "$"
-        return re.match(regex, value) is not None
+        # re.DOTALL, and fullmatch rather than an anchored match.
+        #
+        # Without DOTALL a `.` will not match a newline, so `send_*` failed to match the value
+        # "send_\nemail" and the deny rule was silently skipped - the call fell through to a
+        # broader allow and proceeded with no human in the loop. A deny rule that anything can
+        # step around by embedding a newline is not a deny rule. The value is attacker-influenced:
+        # tool names come from the MCP server being gated, and principals can be caller-supplied.
+        #
+        # fullmatch also removes the `$`-before-a-trailing-newline quirk, which made `delete_*`
+        # match "delete_file\n" - a pattern should match the string it was written for and
+        # nothing that merely resembles it.
+        regex = re.escape(pattern).replace(r"\*", ".*")
+        return re.fullmatch(regex, value, re.DOTALL) is not None
 
     def matches(self, call: ToolCall) -> bool:
         if not any(self._glob_match(p, call.tool) for p in self.tool_patterns):

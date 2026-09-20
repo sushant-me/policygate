@@ -143,11 +143,13 @@ functions, and each test fails if the property is weakened:
 6. A call the gate cannot read is escalated without consulting the policy, so no
    name-only allow rule can approve arguments that were never parsed.
 7. The audit chain detects tampering, and survives a reload from disk.
+8. A pattern matches the whole value, newlines included — a deny rule that anything can
+   step around by embedding a newline is not a deny rule.
 
 **Checked by mutation, not by assertion.** Weakening two things — letting a model's
 `ALLOW` through on an uncovered call, and letting an unparseable call fall through to
 rule matching — makes **six tests fail**, and each failure names the path it protects.
-Restored, all 58 pass. A test suite for a security control that cannot fail is
+Restored, all 60 pass. A test suite for a security control that cannot fail is
 documentation, not a control.
 
 Two of those tests were wrong when I first wrote them, and running them is what showed
