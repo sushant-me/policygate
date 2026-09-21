@@ -5,13 +5,23 @@ description = "A fail-closed policy gate for autonomous agent tool calls, built 
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [{ name = "Sushant Poudel", email = "sushant.poudel2028@gmail.com" }]
 keywords = ["ai-security", "agents", "llm", "policy", "guardrails", "tool-calling"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
   "Topic :: Security",
   "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/sushant-me/policygate"
+Repository = "https://github.com/sushant-me/policygate"
+Issues = "https://github.com/sushant-me/policygate/issues"
+"Security advisories" = "https://github.com/sushant-me/policygate/security/advisories"
+"Advisory GHSA-qwvv-fcmm-r3j2" = "https://github.com/sushant-me/policygate/security/advisories/GHSA-qwvv-fcmm-r3j2"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
