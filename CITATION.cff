@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software in work you publish, please cite it as below."
+title: "policygate"
+type: software
+authors:
+  - family-names: Poudel
+    given-names: Sushant
+    email: sushant.poudel2028@gmail.com
+    affiliation: "Nepal Engineering College, Bhaktapur, Nepal"
+    # Register an ORCID iD and add it here — it is the identifier that
+    # disambiguates this author from other researchers of the same name:
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+abstract: >-
+  A fail-closed policy gate for autonomous agent tool calls, built so a language model can never authorise an action.
+keywords:
+  - ai-security
+  - agents
+  - llm
+  - policy
+  - guardrails
+  - tool-calling
+license: MIT
+repository-code: "https://github.com/sushant-me/policygate"
