@@ -3,6 +3,14 @@
 **A fail-closed policy gate for autonomous agent tool calls, built so that a language
 model can never authorise an action.**
 
+Install the released version:
+
+```bash
+pip install "git+https://github.com/sushant-me/policygate.git@v0.1.1"
+```
+
+Or work from a clone (`pip install -e .`) - the commands below use files from this repository.
+
 ```bash
 pip install -e .            # stdlib only, no runtime dependencies
 python3 examples/demo.py    # six tool calls, decided and audited
