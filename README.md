@@ -215,7 +215,7 @@ Stated here rather than left for you to discover:
 
 ## Status
 
-`v0.1.0`, stdlib only, Python 3.11+, CI on 3.11/3.12/3.13. The design and the numbers it
+`v0.1.1`, stdlib only, Python 3.11+, CI on 3.11/3.12/3.13. The design and the numbers it
 rests on are public and re-checked weekly by
 [sushant-me/reputation](https://github.com/sushant-me/reputation).
 
