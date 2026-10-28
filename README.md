@@ -1,5 +1,9 @@
 # policygate
 
+[![CI](https://github.com/sushant-me/policygate/actions/workflows/ci.yml/badge.svg)](https://github.com/sushant-me/policygate/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://github.com/sushant-me/policygate/blob/main/pyproject.toml)
+[![License](https://img.shields.io/github/license/sushant-me/policygate)](https://github.com/sushant-me/policygate/blob/main/LICENSE)
+
 **A fail-closed policy gate for autonomous agent tool calls, built so that a language
 model can never authorise an action.**
 
